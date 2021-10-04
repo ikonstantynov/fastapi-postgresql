@@ -1,0 +1,29 @@
+version: "3.8"
+# TODO: move migration call to the app on init
+services:
+  api:
+    build: .
+    command: bash -c 'alembic -c "./configs/alembic.ini" stamp head && alembic -c "./configs/alembic.ini" revision --autogenerate && alembic -c "./configs/alembic.ini" upgrade head && uvicorn fastapi_postgresql.app:app --reload --host 0.0.0.0 --port 8000 --interface asgi3'
+    environment:
+      - ENVIRONMENT=local
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=main_db_name
+      - DB_USER=username
+      - DB_PASS=password
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:12
+    restart: always
+    environment:
+      - POSTGRES_DB=main_db_name
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
